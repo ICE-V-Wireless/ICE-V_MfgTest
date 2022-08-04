@@ -1,0 +1,26 @@
+# ##############################################################################
+# esp32c3_fpga PCF file
+# ##############################################################################
+
+# RGB LED
+set_io RGB0 39
+set_io RGB1 40
+set_io RGB2 41
+
+# ESP32C3 SPI interface
+set_io SPI_MISO 14
+set_io SPI_SCLK 15
+set_io SPI_CSL 16
+set_io SPI_MOSI 17
+
+# External 12MHz clock oscillator
+set_io clk_12MHz 35
+
+# SPI interface to PSRAM in default design
+set_io spi0_miso 10
+set_io spi0_sclk 13
+set_io spi0_cs0 11
+set_io spi0_mosi 12
+set_io spi0_nwp 9
+set_io spi0_nhld 18
+
