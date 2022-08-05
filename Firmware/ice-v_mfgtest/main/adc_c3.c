@@ -3,10 +3,11 @@
  * 05-18-22 E. Brombaugh
  */
 #include "adc_c3.h"
+#include "esp_idf_version.h"
 
 static const char* TAG = "adc_c3";
 
-#if 0
+#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)
 /* Legacy ADC driver */
 #include "driver/adc.h"
 #include "esp_adc_cal.h"
@@ -17,7 +18,6 @@ static const char* TAG = "adc_c3";
 
 static bool adc_c3_cali_enable;
 static esp_adc_cal_characteristics_t adc1_chars;
-static const char* TAG = "adc_c3";
 
 /*
  * from the ESP IDF examples
