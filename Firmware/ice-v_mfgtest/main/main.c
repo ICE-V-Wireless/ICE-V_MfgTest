@@ -342,7 +342,7 @@ void app_main(void)
 	{
 		vTaskDelay(1);
 	}
-	if(timeout == 500)
+	if(timeout >= 500)
     {
 		ESP_LOGW(TAG, "Timeout waiting for Boot Button Pressed.");
 		boot_btn_err++;
@@ -359,7 +359,55 @@ void app_main(void)
     if(!adc_c3_init())
     {
 		ESP_LOGI(TAG, "ADC Initialized");
-		ESP_LOGI(TAG, "Vbat = %d mV", 2*adc_c3_get());
+		int16_t i, vbat[128];
+		int64_t sampletime[128];
+		
+		/* acquire samples and stats */
+		int32_t mean = 0, min = 8192, max = 0;
+		for(i=0;i<128;i++)
+		{
+			vbat[i] = adc_c3_get();
+			mean += vbat[i];
+			min = min > vbat[i] ? vbat[i] : min;
+			max = max < vbat[i] ? vbat[i] : max;
+			sampletime[i] = esp_timer_get_time();
+			vTaskDelay(1);
+		}
+		
+		/* compute mean */
+		mean /= 128;
+		ESP_LOGI(TAG, "|Vbat| = %d mV, min = %d mV, max = %d mV", 2*mean, 2*min, 2*max);
+		
+		/* dump samples and search for edges */
+		int64_t pt = 0, dt;
+		for(i=0;i<128;i++)
+		{
+			//printf("% 4d %8lld ", 2*vbat[i], sampletime[i]);
+			if((i>1) && (vbat[i-1] < mean) && (vbat[i] >= mean) && ((vbat[i] - vbat[i-1])>20))
+			{
+				dt = sampletime[i] - pt;
+				pt = sampletime[i];
+				//printf("%8lld %8lld ", dt, pt);
+			}
+			//printf("\n");
+		}
+		
+		/* compute period */
+		float per, frq;
+		per = 1e-6 * dt;
+		frq = 1.0F/per;
+		ESP_LOGI(TAG, "Period = %f sec (%f Hz)", per, frq);
+		
+		/* check bounds */
+		if((2*max > 4100) && (2*max < 4300) && (frq > 3.0f) && (frq < 5.0f))
+		{
+			ESP_LOGI(TAG, "#TEST# Charge Test PASS");
+		}
+		else
+		{
+			ESP_LOGW(TAG, "#TEST# Charge Test FAIL");
+			errcnt++;
+		}
     }
 	else
     {
