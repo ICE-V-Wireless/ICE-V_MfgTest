@@ -3,18 +3,39 @@
 # execute a single pass of the test and firmware load process.
 
 from subprocess import Popen, PIPE, STDOUT
+import serial
 
-#cmd = ['/opt/espressif/esp-idf_V4.4.2/tools/idf_monitor.py', '-p', \
-#       '/dev/ttyACM0', '../Firmware/ice-v_mfgtest/build/ICE-V_MfgTst.elf']
-
-cmd = ['python', \
-       '/opt/espressif/esp-idf_V4.4.2/components/esptool_py/esptool/esptool.py', \
-       '--chip esp32c3', '-p', '/dev/ttyACM0', '-b', '2000000', \
-        'write_flash', \
-       '@../Firmware/ice-v_mfgtest/build/flash_project_args']
+# flash mfg test firmware
+print("Flashing Mfg Test Firmware...")
+cmd = ['./flash.sh', '../Firmware/ice-v_mfgtest/build/']
 p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
 output = p.communicate()[0]
+output = output.decode('UTF-8')
 
-print(output)
+if "[100%] Built target flash" in output:
+    print("Test Firmware Flash Succeeded")
+elif "Error" in output:
+    print("Test Firmware Flash Failed")
+else:
+    print("Test Firmware Flash Unknown result")
 
+# open up serial port and get test results
+print("Collecting Mfg Test Firmware Results")
+with serial.Serial("/dev/ttyACM0") as tty:
+    while True:
+        reply = tty.read_until()
+        rplystr = reply.decode('utf-8')
+        if "#TEST#" in rplystr:
+            print(rplystr)
+            if "Complete" in rplystr:
+                # test is done so bail out and close port
+                break
+
+# Report result
+if "SUCCEED" in rplystr:
+    print("Test Passed")
+elif "FAIL" in rplystr:
+    print("Test Failed")
+else:
+    print("Test Unknown result")
