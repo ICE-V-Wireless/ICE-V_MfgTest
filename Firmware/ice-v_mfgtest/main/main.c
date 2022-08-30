@@ -325,6 +325,7 @@ void app_main(void)
 	ESP_LOGI(TAG, "Waiting for Boot button release.");
 	uint32_t timeout = 0, boot_btn_err = 0;
 	vTaskDelay(1);
+	ESP_LOGI(TAG, "#TEST# ----Press Boot Button Now----");
 	while((gpio_get_level(BOOT_PIN)==0) && (timeout++ < 500))
 	{
 		vTaskDelay(1);
@@ -411,19 +412,19 @@ void app_main(void)
     }
 	else
     {
-		ESP_LOGW(TAG, "ADC Init Failed");
+		ESP_LOGW(TAG, "#TEST# ADC Init Failed");
 		errcnt++;
     }
 	
 	/* init WiFi & socket */
 	if(!wifi_init())
 	{
-		ESP_LOGI(TAG, "WiFi Running");
+		ESP_LOGI(TAG, "#TEST# WiFi PASS");
 		ESP_LOGI(TAG, "RSSI: %d", wifi_get_rssi());
 	}
 	else
 	{
-		ESP_LOGE(TAG, "WiFi Init Failed");
+		ESP_LOGW(TAG, "#TEST# WiFi FAIL");
 		errcnt++;
     }
 	

@@ -4,6 +4,11 @@
 
 from subprocess import Popen, PIPE, STDOUT
 import serial
+import re
+
+def escape_ansi(line):
+    ansi_escape =re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
+    return ansi_escape.sub('', line)
 
 # flash mfg test firmware
 print("Flashing Mfg Test Firmware...")
@@ -25,7 +30,9 @@ print("Collecting Mfg Test Firmware Results")
 with serial.Serial("/dev/ttyACM0") as tty:
     while True:
         reply = tty.read_until()
-        rplystr = reply.decode('utf-8')
+        rplystr = escape_ansi(reply.decode('utf-8'))
+        rplystr = rplystr.rstrip('\n')
+        rplystr = rplystr[:-1]
         if "#TEST#" in rplystr:
             print(rplystr)
             if "Complete" in rplystr:

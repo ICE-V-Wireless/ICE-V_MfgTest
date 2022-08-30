@@ -181,7 +181,13 @@ esp_err_t example_connect(void)
     ESP_ERROR_CHECK(esp_register_shutdown_handler(&stop));
     ESP_LOGI(TAG, "Waiting for IP(s)");
     for (int i = 0; i < NR_OF_IP_ADDRESSES_TO_WAIT_FOR; ++i) {
-        xSemaphoreTake(s_semph_get_ip_addrs, portMAX_DELAY);
+		/* wait up to 10s then give up so test can complete */
+        if(xSemaphoreTake(s_semph_get_ip_addrs, 10000/portTICK_PERIOD_MS) != pdTRUE)
+		{
+            ESP_LOGW(TAG, "Failed to connect");
+			stop();
+			return ESP_FAIL;
+		}
     }
     // iterate over active interfaces, and print out IPs of "our" netifs
     esp_netif_t *netif = NULL;
