@@ -7,28 +7,35 @@ Manufacturing Test support ware
 * Make sure you have IDF V4.4.2 installed an that you've run the setup
 script to get all the environment variables properly set.
 * Go into the Firmware directories of each Git repo and run `idf.py build`
-to generate the binaries for both the test and shipping firmware.
+to generate the binaries for both the test and shipping firmware. For the
+MfgTest firmware be sure to set up the WiFi `credentials.h` file with the
+SSID and password of a WiFi network that will be available for the DUT
+to connect to during the test. For the shipping firmware make sure that
+the `main/CMakelists.txt` file is set up to load the SPIFFS filesystem
+(the MfgTest firmware is already set up to do so).
 * Go into the `ICE-V-MfgTest/python` directory and run the `run_test.py`
 script. This will execute a single pass of the automated test.
+* For testing multiple units an outer looping script can be used (borrow
+from the Orangecrab test suite?)
 
 ## What it does
 A single pass of the automated test begins with an erased board with no
 firmware. It then performs the following operations:
-* Attempts to install the bootloader, test firmware and test SPIFFS filesystem.
+* Attempt to install the bootloader, test firmware and test SPIFFS filesystem.
 If that fails the process will abort. If it succeeds then it proceeds to
-* Runs the manufacturing test which excercises all the main functions of the
+* Run the manufacturing test which excercises all the main functions of the
 board including:
- * SPIFFS initialize
- * FGPA programming with SPI passthru gateware
- * SPI PSRAM
- * FPGA programming with test gateware
- * Read FPGA ID
- * FPGA PLL and external clock oscillator
- * Continuity test on all PMOD I/O
- * Continuity test on ESP32 C3 GPIO
- * Boot button
- * Battery charger
- * WiFi
+  * SPIFFS initialize
+  * FGPA programming with SPI passthru gateware
+  * SPI PSRAM
+  * FPGA programming with test gateware
+  * Read FPGA ID
+  * FPGA PLL and external clock oscillator
+  * Continuity test on all PMOD I/O
+  * Continuity test on ESP32 C3 GPIO
+  * Boot button
+  * Battery charger
+  * WiFi
 * If the manufacturing test passes then it proceeds to
 * Attempt to install the bootloader, end-user firmware and SPIFFS filesystem.
 * Run the USB Serial command line utility to verify the default gateware ID.
