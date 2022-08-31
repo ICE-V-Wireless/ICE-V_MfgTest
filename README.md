@@ -15,25 +15,27 @@ the `main/CMakelists.txt` file is set up to load the SPIFFS filesystem
 (the MfgTest firmware is already set up to do so).
 * Go into the `ICE-V-MfgTest/python` directory and run the `run_test.py`
 script. This will execute a single pass of the automated test.
+* For testing multiple units an outer looping script can be used (borrow
+from the Orangecrab test suite?)
 
 ## What it does
 A single pass of the automated test begins with an erased board with no
 firmware. It then performs the following operations:
-* Attempts to install the bootloader, test firmware and test SPIFFS filesystem.
+* Attempt to install the bootloader, test firmware and test SPIFFS filesystem.
 If that fails the process will abort. If it succeeds then it proceeds to
-* Runs the manufacturing test which excercises all the main functions of the
+* Run the manufacturing test which excercises all the main functions of the
 board including:
- * SPIFFS initialize
- * FGPA programming with SPI passthru gateware
- * SPI PSRAM
- * FPGA programming with test gateware
- * Read FPGA ID
- * FPGA PLL and external clock oscillator
- * Continuity test on all PMOD I/O
- * Continuity test on ESP32 C3 GPIO
- * Boot button
- * Battery charger
- * WiFi
+  * SPIFFS initialize
+  * FGPA programming with SPI passthru gateware
+  * SPI PSRAM
+  * FPGA programming with test gateware
+  * Read FPGA ID
+  * FPGA PLL and external clock oscillator
+  * Continuity test on all PMOD I/O
+  * Continuity test on ESP32 C3 GPIO
+  * Boot button
+  * Battery charger
+  * WiFi
 * If the manufacturing test passes then it proceeds to
 * Attempt to install the bootloader, end-user firmware and SPIFFS filesystem.
 * Run the USB Serial command line utility to verify the default gateware ID.
