@@ -7,7 +7,12 @@ Manufacturing Test support ware
 * Make sure you have IDF V4.4.2 installed an that you've run the setup
 script to get all the environment variables properly set.
 * Go into the Firmware directories of each Git repo and run `idf.py build`
-to generate the binaries for both the test and shipping firmware.
+to generate the binaries for both the test and shipping firmware. For the
+MfgTest firmware be sure to set up the WiFi `credentials.h` file with the
+SSID and password of a WiFi network that will be available for the DUT
+to connect to during the test. For the shipping firmware make sure that
+the `main/CMakelists.txt` file is set up to load the SPIFFS filesystem
+(the MfgTest firmware is already set up to do so).
 * Go into the `ICE-V-MfgTest/python` directory and run the `run_test.py`
 script. This will execute a single pass of the automated test.
 
