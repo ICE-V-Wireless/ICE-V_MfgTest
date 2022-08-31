@@ -290,6 +290,7 @@ void app_main(void)
 			pmod_err++;
 		}
 	}
+	ICE_FPGA_Serial_Write(MFGTST_REG_GPO, 0);
 	
 	/* Test GPIO 20 & 21 connectivity */
 	gpio_reset_pin(20);	// get 'em out of UART mode
@@ -325,7 +326,6 @@ void app_main(void)
 	ESP_LOGI(TAG, "Waiting for Boot button release.");
 	uint32_t timeout = 0, boot_btn_err = 0;
 	vTaskDelay(1);
-	ESP_LOGI(TAG, "#TEST# ----Press Boot Button Now----");
 	while((gpio_get_level(BOOT_PIN)==0) && (timeout++ < 500))
 	{
 		vTaskDelay(1);
@@ -337,7 +337,8 @@ void app_main(void)
     }
 		
 	/* wait for boot button pressed */
-	ESP_LOGI(TAG, "Waiting for Boot button press.");
+	ICE_FPGA_Serial_Write(2, 0x808080);	// white LED
+	ESP_LOGI(TAG, "#TEST# ----Press Boot Button Now----");
 	timeout = 0;
 	while((gpio_get_level(BOOT_PIN)==1) && (timeout++ < 500))
 	{
@@ -348,6 +349,7 @@ void app_main(void)
 		ESP_LOGW(TAG, "Timeout waiting for Boot Button Pressed.");
 		boot_btn_err++;
     }
+	ICE_FPGA_Serial_Write(2, 0);	// LED Off
 	if(!boot_btn_err)
 		ESP_LOGI(TAG, "#TEST# Boot Button Test PASS");
 	else

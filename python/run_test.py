@@ -7,6 +7,7 @@ import sys
 from subprocess import Popen, PIPE, STDOUT
 import serial
 import re
+from os.path import exists
 
 # strips ANSI escape sequences from received text
 def escape_ansi(line):
@@ -14,13 +15,16 @@ def escape_ansi(line):
     return ansi_escape.sub('', line)
 
 # flashes a full set of firmware to the ESP32C3, including SPIFFS
-def flash_esp32(port, directory, tag):
+def flash_esp32(port, directory, tag, v):
     cmd = ['./flash.sh', port, directory]
     p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
     output = p.communicate()[0]
     output = output.decode('UTF-8')
 
+    if v:
+        print(output)
+        
     if "[100%] Built target flash" in output:
         print(tag, "Flash Succeeded")
         return 0
@@ -32,13 +36,13 @@ def flash_esp32(port, directory, tag):
         return 2
 
 # run the process
-def test_process(port, t, u, i):
+def test_process(port, t, u, i, v):
     err = 0
     if t:
         # flash mfg test firmware
         print("Flashing Mfg Test Firmware...")
         ferr = flash_esp32(port, '../Firmware/ice-v_mfgtest/build/', \
-                           'Test Firmware')
+                           'Test Firmware', v)
 
         if ferr == False:
             # open up serial port and get test results
@@ -54,9 +58,11 @@ def test_process(port, t, u, i):
                         if "Complete" in rplystr:
                             # test is done so bail out and close port
                             break
-
+                    elif v:
+                        print(rplystr)
+                        
             # Report result
-            if "SUCCEED" in rplystr:
+            if "PASS" in rplystr:
                 print("Test Passed")
             elif "FAIL" in rplystr:
                 print("Test Failed")
@@ -71,7 +77,7 @@ def test_process(port, t, u, i):
         # flash default end-user firmware
         print("Flashing End-User Firmware...")
         ferr = flash_esp32(port, '../../ICE-V-Wireless/Firmware/build/', \
-                           'End-User Firmware')
+                           'End-User Firmware', v)
     else:
         ferr = False
     
@@ -110,13 +116,14 @@ def usage():
     print("  -t, --test              : only flash & report mfg test")
     print("  -u, --user              : only flash user firmware")
     print("  -i, --id                : only run ID test on user firmware")
+    print("  -v, --verbose           : verbose progress")
 
 # main entry
 if __name__ == "__main__":
     try:
         opts, args = getopt.getopt(sys.argv[1:], \
-            "hp:tfi", \
-            ["help", "port=", "test", "user", "id"])
+            "hp:tfiv", \
+            ["help", "port=", "test", "user", "id", "verbose"])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
@@ -128,6 +135,7 @@ if __name__ == "__main__":
     t = 1
     u = 1
     i = 1
+    v = 0
     
     # scan thru options
     for o, a in opts:
@@ -145,11 +153,18 @@ if __name__ == "__main__":
         elif o in ("-i", "--id"):
             t = 0
             u = 0
+        elif o in ("-v", "--verbose"):
+            v = 1
         else:
             assert False, "unhandled option"
 
+    # check if tty port actually exists
+    if exists(port) == False:
+        print("Port", port, "does not exist")
+        sys.exit(1)
+
     # run the test
-    result = test_process(port, t, u, i)
+    result = test_process(port, t, u, i, v)
     if result:
         print("Overall - FAIL")
     else:
