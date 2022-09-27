@@ -12,9 +12,9 @@ git submodule update --init
 The test binary will need to be built with your local WiFi credentials.
 * install ESP-IDF V4.4.2 and set it up per directions
 * Go into the `Firmware/ice-v_mfgtest/` directory
-* copy the `credentials_template.h` to `credentials.h' and edit for your WLAN
+* copy the `credentials_template.h` to `credentials.h` and edit for your WLAN
 * run `idf.py build` to create the binaries
-* go to the `python\test_firmware' directory
+* go to the `python/test_firmware' directory
 * run the `get_binaries.sh` script
 * Done!
 
