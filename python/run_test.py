@@ -15,8 +15,16 @@ def escape_ansi(line):
     return ansi_escape.sub('', line)
 
 # flashes a full set of firmware to the ESP32C3, including SPIFFS
-def flash_esp32(port, directory, tag, v):
-    cmd = ['./flash.sh', port, directory]
+def flash_esp32(port, directory, main, tag, v):
+    # run local copy of esptool directly
+    cmd = ['../esptool/esptool.py', '-p', port, \
+           '-b', '460800', '--before',  'default_reset', '--after', 'hard_reset', \
+           '--chip', 'esp32c3', '--no-stub', 'write_flash', '--flash_mode', 'dio', \
+           '--flash_size', 'detect', '--flash_freq', '80m', '0x0', \
+            directory + '/bootloader.bin', '0x8000', \
+            directory + '/partition-table.bin', '0x10000', \
+            directory + '/' + main + '.bin',  '0x110000', \
+            directory + '/storage.bin']
     p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
     output = p.communicate()[0]
@@ -25,23 +33,23 @@ def flash_esp32(port, directory, tag, v):
     if v:
         print(output)
         
-    if "[100%] Built target flash" in output:
+    if "verified" in output:
         print(tag, "Flash Succeeded")
         return 0
-    elif "Error" in output:
+    elif "fatal" in output:
         print(tag, "Flash Failed")
         return 1
     else:
         print(tag, "Flash Unknown result")
         return 2
-
+        
 # run the process
 def test_process(port, t, u, i, v):
     err = 0
     if t:
         # flash mfg test firmware
         print("Flashing Mfg Test Firmware...")
-        ferr = flash_esp32(port, '../Firmware/ice-v_mfgtest/build/', \
+        ferr = flash_esp32(port, 'test_firmware', 'ICE-V_MfgTst', \
                            'Test Firmware', v)
 
         if ferr == False:
@@ -76,7 +84,7 @@ def test_process(port, t, u, i, v):
     if u:
         # flash default end-user firmware
         print("Flashing End-User Firmware...")
-        ferr = flash_esp32(port, '../../ICE-V-Wireless/Firmware/build/', \
+        ferr = flash_esp32(port, 'ship_firmware', 'ICE-V_Wireless', \
                            'End-User Firmware', v)
     else:
         ferr = False
