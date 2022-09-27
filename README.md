@@ -2,17 +2,16 @@
 Manufacturing Test support ware
 
 ## Making it work
-* Git clone both the main firmware repo `ICE-V-Wireless` and the test repo
-`ICE-V_MfgTest` side-by-side in the same directory.
-* Make sure you have IDF V4.4.2 installed an that you've run the setup
-script to get all the environment variables properly set.
-* Go into the Firmware directories of each Git repo and run `idf.py build`
-to generate the binaries for both the test and shipping firmware. For the
-MfgTest firmware be sure to set up the WiFi `credentials.h` file with the
-SSID and password of a WiFi network that will be available for the DUT
-to connect to during the test. For the shipping firmware make sure that
-the `main/CMakelists.txt` file is set up to load the SPIFFS filesystem
-(the MfgTest firmware is already set up to do so).
+This repo uses a local copy of Espressif's `esptool` so you'll need to grab
+that like so:
+
+```
+git submodule update --init
+```
+
+No need to build binaries or install ESP-IDF - the approved binaries are
+already included.
+
 * Go into the `ICE-V-MfgTest/python` directory and run the `run_test.py`
 script. This will execute a single pass of the automated test.
 * For testing multiple units an outer looping script can be used (borrow
