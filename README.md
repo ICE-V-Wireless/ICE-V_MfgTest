@@ -9,9 +9,19 @@ that like so:
 git submodule update --init
 ```
 
-No need to build binaries or install ESP-IDF - the approved binaries are
-already included.
+The test binary will need to be built with your local WiFi credentials.
+* install ESP-IDF V4.4.2 and set it up per directions
+* Go into the `Firmware/ice-v_mfgtest/` directory
+* copy the `credentials_template.h` to `credentials.h' and edit for your WLAN
+* run `idf.py build` to create the binaries
+* go to the `python\test_firmware' directory
+* run the `get_binaries.sh` script
+* Done!
 
+The End-user binaries are already in the `python/ship_firmware` directory and
+don't need credentials because they can be customized at runtime.
+
+To run the test:
 * Go into the `ICE-V-MfgTest/python` directory and run the `run_test.py`
 script. This will execute a single pass of the automated test.
 * For testing multiple units an outer looping script can be used (borrow

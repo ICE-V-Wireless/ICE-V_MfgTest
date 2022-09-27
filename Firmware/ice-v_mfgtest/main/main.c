@@ -344,7 +344,7 @@ void app_main(void)
 	{
 		vTaskDelay(1);
 	}
-	if(timeout >= 500)
+	if(timeout >= 1000)	// 10 second timeout
     {
 		ESP_LOGW(TAG, "Timeout waiting for Boot Button Pressed.");
 		boot_btn_err++;
@@ -402,7 +402,7 @@ void app_main(void)
 		ESP_LOGI(TAG, "Period = %f sec (%f Hz)", per, frq);
 		
 		/* check bounds */
-		if((2*max > 4100) && (2*max < 4300) && (frq > 3.0f) && (frq < 5.0f))
+		if((2*max > 4100) && (2*max < 4300) && (frq > 1.0f) && (frq < 3.0f))
 		{
 			ESP_LOGI(TAG, "#TEST# Charge Test PASS");
 		}
