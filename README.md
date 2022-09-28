@@ -14,7 +14,7 @@ The test binary will need to be built with your local WiFi credentials.
 * Go into the `Firmware/ice-v_mfgtest/` directory
 * copy the `credentials_template.h` to `credentials.h` and edit for your WLAN
 * run `idf.py build` to create the binaries
-* go to the `python/test_firmware' directory
+* go to the `python/test_firmware` directory
 * run the `get_binaries.sh` script
 * Done!
 
