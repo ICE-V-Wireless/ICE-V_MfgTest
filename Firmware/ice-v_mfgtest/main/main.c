@@ -239,13 +239,13 @@ void app_main(void)
 	uint8_t pmod_err = 0;
 	for(uint8_t type = 0;type < 2; type++)
 	{
-		uint32_t pmod_out, pmod_in;
+		uint32_t sel_bit, pmod_out, pmod_in;
 		
 		for(uint bit = 0;bit < 12; bit++)
 		{
 			/* create walking 1/0 */
-			pmod_out = (1<<bit);
-			pmod_out = type ? pmod_out : ~pmod_out;
+			sel_bit = (1<<bit);
+			pmod_out = type ? sel_bit : ~sel_bit;
 			pmod_out &= 0xFFF;
 			
 			/* Write & readback */
@@ -253,6 +253,11 @@ void app_main(void)
 			ICE_FPGA_Serial_Read(MFGTST_REG_GPI, &pmod_in);
 			//printf("%03X : %03X\n", pmod_out, pmod_in);
 	
+			/* mask */
+			pmod_out &= sel_bit;
+			pmod_in &= sel_bit;
+			
+			/* test */
 			if(pmod_in != pmod_out)
 			{
 				uint8_t bits = (bit%4)*2 + 1;
