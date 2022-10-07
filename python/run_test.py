@@ -7,7 +7,17 @@ import sys
 from subprocess import Popen, PIPE, STDOUT
 import serial
 import re
+import time
 from os.path import exists
+from serial.tools import list_ports
+
+# get ESP32C3 serial port
+def get_C3_port():
+    port = list(list_ports.grep("303a:1001"))
+    if len(port) > 0:
+        return port[0][0]
+    else:
+        return 'none'
 
 # strips ANSI escape sequences from received text
 def escape_ansi(line):
@@ -92,12 +102,12 @@ def test_process(port, t, u, i, v):
     if ferr == False and i:
         # try usb-serial command to check ID register
         print("Testing End-User Firmware ID...")
-        cmd = ['../../ICE-V-Wireless/python/send_c3usb.py', '-p', port, '-r', '0']
+        cmd = ['../../ICE-V-Wireless/python/send_c3usb.py', '-r', '0']
 
         # Try 5x before giving up
-        tries = 1
+        tries = 0
         ID = "0xb00f0001"
-        while tries<5:
+        while tries<10:
             p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
             output = p.communicate()[0]
@@ -106,6 +116,7 @@ def test_process(port, t, u, i, v):
             if ID in output:
                 break;
             tries = tries + 1
+            time.sleep(0.2)
             
         if ID in output:
             print("USB ID command PASS")
@@ -130,7 +141,7 @@ def usage():
 if __name__ == "__main__":
     try:
         opts, args = getopt.getopt(sys.argv[1:], \
-            "hp:tfiv", \
+            "hp:tfiuv", \
             ["help", "port=", "test", "user", "id", "verbose"])
     except getopt.GetoptError as err:
         # print help information and exit:
@@ -139,7 +150,11 @@ if __name__ == "__main__":
         sys.exit(2)
 
     # defaults
-    port = "/dev/ttyACM0"
+    port = get_C3_port()
+    if(port == 'none'):
+        print('No ESP32C3 attached')
+        sys.exit(2)
+    
     t = 1
     u = 1
     i = 1
