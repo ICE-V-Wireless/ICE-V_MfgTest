@@ -331,29 +331,38 @@ void app_main(void)
 	ESP_LOGI(TAG, "Waiting for Boot button release.");
 	uint32_t timeout = 0, boot_btn_err = 0;
 	vTaskDelay(1);
-	while((gpio_get_level(BOOT_PIN)==0) && (timeout++ < 500))
+#define BOOT_BTN_TIMEOUT 1000
+	while((gpio_get_level(BOOT_PIN)==0) && (timeout++ < BOOT_BTN_TIMEOUT))
 	{
 		vTaskDelay(1);
 	}
-	if(timeout == 500)
+	if(timeout >= BOOT_BTN_TIMEOUT)
     {
 		ESP_LOGW(TAG, "Timeout waiting for Boot Button Release.");
 		boot_btn_err++;
     }
+	else
+	{
+		ESP_LOGI(TAG, "Boot button released.");
+	}
 		
 	/* wait for boot button pressed */
 	ICE_FPGA_Serial_Write(2, 0x808080);	// white LED
 	ESP_LOGI(TAG, "#TEST# ----Press Boot Button Now----");
 	timeout = 0;
-	while((gpio_get_level(BOOT_PIN)==1) && (timeout++ < 500))
+	while((gpio_get_level(BOOT_PIN)==1) && (timeout++ < BOOT_BTN_TIMEOUT))
 	{
 		vTaskDelay(1);
 	}
-	if(timeout >= 1000)	// 10 second timeout
+	if(timeout >= BOOT_BTN_TIMEOUT)	// 10 second timeout
     {
 		ESP_LOGW(TAG, "Timeout waiting for Boot Button Pressed.");
 		boot_btn_err++;
     }
+	else
+	{
+		ESP_LOGI(TAG, "Boot Button Pressed.");
+	}
 	ICE_FPGA_Serial_Write(2, 0);	// LED Off
 	if(!boot_btn_err)
 		ESP_LOGI(TAG, "#TEST# Boot Button Test PASS");
