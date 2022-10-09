@@ -4,12 +4,14 @@
 
 import getopt
 import sys
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE, STDOUT, TimeoutExpired
 import serial
 import re
 import time
 from os.path import exists
 from serial.tools import list_ports
+import queue
+import threading
 
 # get ESP32C3 serial port
 def get_C3_port():
@@ -24,6 +26,12 @@ def escape_ansi(line):
     ansi_escape =re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
     return ansi_escape.sub('', line)
 
+# gets output from subprocess into queue for analysis
+def output_reader(proc, outq):
+    for line in iter(proc.stdout.readline, b''):
+        outq.put(line.decode('utf-8'))
+    outq.put("Terminated ")
+    
 # flashes a full set of firmware to the ESP32C3, including SPIFFS
 def flash_esp32(port, directory, main, tag, v):
     # run local copy of esptool directly
@@ -37,22 +45,70 @@ def flash_esp32(port, directory, main, tag, v):
             directory + '/storage.bin']
     p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
-    output = p.communicate()[0]
-    output = output.decode('UTF-8')
+    # handle output
+    if 0:
+        # original batch approach
+        output = p.communicate()[0]
+        output = output.decode('UTF-8')
 
-    if v:
-        print(output)
-        
-    if "verified" in output:
-        print(tag, "Flash Succeeded")
-        return 0
-    elif "fatal" in output:
-        print(tag, "Flash Failed")
-        return 1
+        if v:
+            print(output)
+            
+        if "verified" in output:
+            print(tag, "Flash Succeeded")
+            return 0
+        elif "fatal" in output:
+            print(tag, "Flash Failed")
+            return 1
+        else:
+            print(tag, "Flash Unknown result")
+            return 2
     else:
-        print(tag, "Flash Unknown result")
-        return 2
+        # realtime approach needs queues and threads
+        result = 2
+        q = queue.Queue()
+        t = threading.Thread(target=output_reader, args=(p, q))
+        t.start()
+        time.sleep(0.2)
+        running = True
+        linectr = 0
+        vctr = 0
+        fail = False
+        while running:
+            line = q.get(block=True)
+            
+            # strip newline
+            line = line[:-1]
+            linectr = linectr + 1
+
+            # verbose or progress
+            if v:
+                print(line)
+            elif linectr%36==0:
+                print(".", end = '')
+                sys.stdout.flush()
+                
+            if "verified" in line:
+                vctr = vctr + 1
+            elif "fatal" in line:
+                fail = True
+            elif "Terminated" in line:
+                running = False
+        t.join()
+
+        print(" ")
         
+        if fail:
+            print("Flash failed")
+            result = 1
+        elif vctr == 4:
+            print("Flash succeeded")
+            result = 0
+        else:
+            print("Unknown flash result")
+        
+        return result
+    
 # run the process
 def test_process(port, t, u, i, v):
     err = 0
@@ -107,11 +163,12 @@ def test_process(port, t, u, i, v):
         # Try 5x before giving up
         tries = 0
         ID = "0xb00f0001"
-        while tries<10:
+        while tries<5:
             p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 
             output = p.communicate()[0]
             output = output.decode('UTF-8')
+            output = output[:-1]
             print("Try ", tries, ":", output)
             if ID in output:
                 break;
