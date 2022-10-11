@@ -416,7 +416,8 @@ void app_main(void)
 		ESP_LOGI(TAG, "Period = %f sec (%f Hz)", per, frq);
 		
 		/* check bounds */
-		if((2*max > 4100) && (2*max < 4300) && (frq > 1.0f) && (frq < 3.0f))
+		/* Max should be about 4.2V, Freq should be about 5Hz */
+		if((2*max > 4100) && (2*max < 4300) && (frq > 4.0f) && (frq < 6.0f))
 		{
 			ESP_LOGI(TAG, "#TEST# Charge Test PASS");
 		}
