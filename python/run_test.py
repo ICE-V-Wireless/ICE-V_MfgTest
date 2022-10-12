@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/env python3
 # Script for the ICE-V Wireless manufacturing testing. This program will
 # execute a single pass of the test and firmware load process.
 
